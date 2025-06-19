@@ -37,16 +37,14 @@ class AudioParams {
 public:
   AudioParams() :
     sample_rate_(0),
-    channel_layout_(0),
     format_(SampleFormat::INVALID)
   {
     set_default_footage_parameters();
-
     // Cache channel count
     calculate_channel_count();
   }
 
-  AudioParams(const int& sample_rate, const uint64_t& channel_layout, const SampleFormat& format) :
+  AudioParams(const int& sample_rate, const AVChannelLayout& channel_layout, const SampleFormat& format) :
     sample_rate_(sample_rate),
     channel_layout_(channel_layout),
     format_(format)
@@ -68,12 +66,12 @@ public:
     sample_rate_ = sample_rate;
   }
 
-  uint64_t channel_layout() const
+  AVChannelLayout channel_layout() const
   {
     return channel_layout_;
   }
 
-  void set_channel_layout(uint64_t channel_layout)
+  void set_channel_layout(AVChannelLayout& channel_layout)
   {
     channel_layout_ = channel_layout;
     calculate_channel_count();
@@ -169,7 +167,7 @@ private:
 
   int sample_rate_;
 
-  uint64_t channel_layout_;
+  AVChannelLayout channel_layout_;
 
   int channel_count_;
 
