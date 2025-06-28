@@ -21,6 +21,8 @@
 #ifndef LIBOLIVECORE_AUDIOPARAMS_H
 #define LIBOLIVECORE_AUDIOPARAMS_H
 
+#include <cstring>
+
 extern "C" {
 #include <libavutil/channel_layout.h>
 }
@@ -37,25 +39,25 @@ class AudioParams {
 public:
   AudioParams() :
     sample_rate_(0),
-    channel_layout_(0),
     format_(SampleFormat::INVALID)
   {
     set_default_footage_parameters();
-
+    memset(&channel_layout_, 0, sizeof(channel_layout_));
     // Cache channel count
     calculate_channel_count();
   }
 
-  AudioParams(const int& sample_rate, const uint64_t& channel_layout, const SampleFormat& format) :
-    sample_rate_(sample_rate),
-    channel_layout_(channel_layout),
-    format_(format)
-  {
+  AudioParams(const int& sample_rate, const AVChannelLayout& channel_layout, const SampleFormat& format)
+      : sample_rate_(sample_rate), channel_layout_(channel_layout), format_(format) {
     set_default_footage_parameters();
     timebase_ = sample_rate_as_time_base();
 
     // Cache channel count
     calculate_channel_count();
+  }
+  AudioParams(int sample_rate, uint64_t channel_layout, SampleFormat sample_format)
+    : sample_rate_(sample_rate),  format_(sample_format) {
+    av_channel_layout_from_mask(&channel_layout_, channel_layout);
   }
 
   int sample_rate() const
@@ -68,12 +70,21 @@ public:
     sample_rate_ = sample_rate;
   }
 
-  uint64_t channel_layout() const
+  AVChannelLayout channel_layout() const
   {
     return channel_layout_;
   }
-
   void set_channel_layout(uint64_t channel_layout)
+  {
+    av_channel_layout_from_mask(&channel_layout_, channel_layout);
+    calculate_channel_count();
+  }
+  void set_channel_layout(AVChannelLayout &channel_layout)
+  {
+    channel_layout_ = channel_layout;
+    calculate_channel_count();
+  }
+  void set_channel_layout(AVChannelLayout &&channel_layout)
   {
     channel_layout_ = channel_layout;
     calculate_channel_count();
@@ -169,7 +180,7 @@ private:
 
   int sample_rate_;
 
-  uint64_t channel_layout_;
+  AVChannelLayout channel_layout_;
 
   int channel_count_;
 

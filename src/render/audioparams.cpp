@@ -47,10 +47,10 @@ const std::vector<uint64_t> AudioParams::kSupportedChannelLayouts = {
 
 bool AudioParams::operator==(const AudioParams &other) const
 {
-  return (format() == other.format()
+  return format() == other.format()
           && sample_rate() == other.sample_rate()
           && time_base() == other.time_base()
-          && channel_layout() == other.channel_layout());
+          && av_channel_layout_compare(&channel_layout_, &other.channel_layout_);
 }
 
 bool AudioParams::operator!=(const AudioParams &other) const
@@ -150,14 +150,15 @@ int AudioParams::bits_per_sample() const
 bool AudioParams::is_valid() const
 {
   return (!time_base().isNull()
-          && channel_layout() > 0
+          && av_channel_layout_check(&channel_layout_)
           && format_ > SampleFormat::INVALID
           && format_ < SampleFormat::COUNT);
 }
 
 void AudioParams::calculate_channel_count()
 {
-  channel_count_ = av_get_channel_layout_nb_channels(channel_layout());
+
+   channel_count_ = channel_layout_.nb_channels;
 }
 
 }
